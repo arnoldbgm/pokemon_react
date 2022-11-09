@@ -11,6 +11,8 @@ import { useState, useEffect } from "react";
 const App = () => {
   const [pokemonId, setPokemonId] = useState(1);
 
+  const [pokemonEvolutions, setPokemonEvolutions] = useState([]);
+
   useEffect(() => {
     getEvolutions(pokemonId);
   }, [pokemonId]);
@@ -24,8 +26,21 @@ const App = () => {
     let pokemonEvoArray = [];
 
     let pokemonLv1 = data.chain.species.name;
-    let pokemonLv1Img = getPokemonImgs(pokemonLv1);
+    let pokemonLv1Img = await getPokemonImgs(pokemonLv1);
     pokemonEvoArray.push([pokemonLv1, pokemonLv1Img]);
+
+    if (data.chain.evolves_to.length !== 0) {
+      let pokemonLv2 = data.chain.evolves_to[0].species.name;
+      let pokemonLv2Img = await getPokemonImgs(pokemonLv2);
+      pokemonEvoArray.push([pokemonLv2, pokemonLv2Img]);
+
+      if (data.chain.evolves_to[0].evolves_to.length !== 0) {
+        let pokemonLv3 = data.chain.evolves_to[0].evolves_to[0].species.name;
+        let pokemonLv3Img = await getPokemonImgs(pokemonLv3);
+        pokemonEvoArray.push([pokemonLv3, pokemonLv3Img]);
+      }
+    }
+    setPokemonEvolutions(pokemonEvoArray);
   }
 
   async function getPokemonImgs(name) {
@@ -43,16 +58,18 @@ const App = () => {
   };
 
   return (
-    <>
-      <div className="card-container">
-        <Card />
+    <div className="app">
+      <div className={`card-container card${pokemonEvolutions.length}`}>
+        {pokemonEvolutions.map((pokemon, index) => (
+          <Card key={index} name={pokemon[0]} img={pokemon[1]} />
+        ))}
       </div>
       <div className="buttons-container">
         <Button icon={<TiArrowLeftOutline />} handleClick={prevClick} />
 
         <Button icon={<TiArrowRightOutline />} handleClick={nextClick} />
       </div>
-    </>
+    </div>
   );
 };
 
